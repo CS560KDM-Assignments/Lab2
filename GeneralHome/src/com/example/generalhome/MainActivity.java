@@ -36,6 +36,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -81,7 +82,8 @@ public class MainActivity extends Activity implements  LocationListener{
 		super.onCreate(savedInstanceState);
 		StrictMode.setThreadPolicy(policy);
 		setContentView(R.layout.activity_main);
-		System.out.println("aminnnnnnnnnnnnnnnnnn");
+
+		//Initialising variables
 		AddressButton = (Button) findViewById(R.id.add);
 		image = (ImageView)findViewById(R.id.page_images);
 		latLngButton = (Button)findViewById(R.id.latlng);
@@ -94,60 +96,61 @@ public class MainActivity extends Activity implements  LocationListener{
 		date_text = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
 		date = (TextView) findViewById(R.id.date);
 		date.setText(date_text);
-		System.out.println("dateeeeeeeeeeeeeeeeeeeeee"+date_text);
 		weather_img = (ImageView)(findViewById(R.id.weather_img));
 		lat="";
 		lng="";
 		count =0;
 		imageids = new int[]{R.drawable.top9, R.drawable.top3,R.drawable.top7,R.drawable.top5,R.drawable.top10,
 				R.drawable.top4,R.drawable.top8,R.drawable.top2,R.drawable.top6,R.drawable.top1};
-		
 
-
+		//getting the location with location manager
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
 
+		//Setting Date on right top corner
 		Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String formattedDate = df.format(c.getTime());
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String formattedDate = df.format(c.getTime());
 		date.setText(formattedDate)	;	
-		
-		TranslateAnimation animation = new TranslateAnimation(-200.0f, 200.0f, 0.0f, 0.0f);          //  new TranslateAnimation(xFrom,xTo, yFrom,yTo)
-		    animation.setDuration(5000);  // animation duration 
-		    animation.setRepeatCount(Animation.INFINITE);  // animation repeat count
-		    animation.setRepeatMode(2);   // repeat animation (left to right, right to left )
-		    animation.setFillAfter(true);      
-		    animation.setAnimationListener(new AnimationListener() {
+
+		//Animation for the image
+		TranslateAnimation animation = new TranslateAnimation(-200.0f, 200.0f, 0.0f, 0.0f); 
+		animation.setDuration(5000);  
+		animation.setRepeatCount(Animation.INFINITE);  
+		animation.setRepeatMode(2);   
+		animation.setFillAfter(true);      
+		animation.setAnimationListener(new AnimationListener() {
+
+			public void onAnimationStart(Animation animation) {
+				// TODO Auto-generated method stub
+			}
+
+			public void onAnimationRepeat(Animation animation) {
+				if(count == imageids.length)
+					count =0;
+				image.setImageResource(imageids[count++]); // images changes
+
+			}
+
+			public void onAnimationEnd(Animation animation) {
+
+
+			}
+		});
+		image.startAnimation(animation);  
+
 				
-				public void onAnimationStart(Animation animation) {
-					// TODO Auto-generated method stub
-				}
-				
-				public void onAnimationRepeat(Animation animation) {
-					if(count == imageids.length)
-						count =0;
-					image.setImageResource(imageids[count++]);
-					
-				}
-				
-				public void onAnimationEnd(Animation animation) {
-								
-					
-				}
-			});
-		    image.startAnimation(animation);  // start animation 
-		
-		
+		//Address button gives the current address
 		AddressButton.setOnClickListener(new View.OnClickListener(){
 
 			public void onClick(View v){
-		getlatlng();
-		getAddress();
-		String fullAddress = ""+Address1+Address2+"\n"+City +","+State+"\n"+Country+"-"+PIN;
-		addressText.setText(fullAddress);
+				getlatlng();
+				getAddress();
+				String fullAddress = ""+Address1+Address2+"\n"+City +","+State+"\n"+Country+"-"+PIN;
+				addressText.setText(fullAddress);
 			}});
 
-
+		//gives the current weather
 		weatherButton.setOnClickListener(new View.OnClickListener(){
 
 			public void onClick(View v){
@@ -182,10 +185,11 @@ public class MainActivity extends Activity implements  LocationListener{
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+
+	//Retriving weather data
 	public HashMap<String, String> weatherFromJsonResult(String jsonString)
 	{
-System.out.println("hash map");
-		//String result="1";
+
 		HashMap result= new HashMap<String, String>();
 		String weather ="";
 		String temp_f="";
@@ -197,18 +201,11 @@ System.out.println("hash map");
 			jsonObj1 = new JSONObject(jsonString);
 			JSONObject resultClimate=jsonObj1.getJSONObject("current_observation");
 
-			//temp_f=resultClimate.getString("temp_f");
 			result.put("Weather",resultClimate.getString("weather"));
 			result.put("Temp in F",resultClimate.getString("temp_f"));
 			result.put("Temp in C",resultClimate.getString("temp_c"));
 			result.put("Feels Like",resultClimate.getString("feelslike_string"));
 			result.put("icon_url",resultClimate.getString("icon_url"));
-			/*temp_c=resultClimate.getString("temp_c");
-			weather = resultClimate.getString("weather");
-			feels =resultClimate.getString("feelslike_string");
-			icon_url=resultClimate.getString("icon_url");
-			 */
-			/*result = icon_url+";"+weather+";"+temp_f+";"+temp_c+";"+feels;*/
 
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
@@ -218,6 +215,7 @@ System.out.println("hash map");
 		return result;
 	}
 
+	//Location manager implemented methods
 	@Override
 	public void onLocationChanged(Location location) {
 
@@ -241,7 +239,8 @@ System.out.println("hash map");
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 		Log.d("Latitude","status");
 	}
-	
+
+	//getting JSON from URL
 	String getJsonFromUrl(String url)
 	{
 		HttpClient httpclient = new DefaultHttpClient();
@@ -270,18 +269,18 @@ System.out.println("hash map");
 		}
 		return responseString;
 	}
-	
+
 	void getlatlng()
 	{	
 		String latlng[] = latLngText.getText().toString().split(",");
-		 lat =latlng[0].split(":")[1];
-		 lng =latlng[1].split(":")[1];
-		
+		lat =latlng[0].split(":")[1];
+		lng =latlng[1].split(":")[1];
 	}
+
+
 	void getAddress()
 	{
 		String uri = "http://maps.googleapis.com/maps/api/geocode/json?latlng=" + lat + ","+ lng + "&sensor=true";
-		System.out.println("URLLLLLLLLLLLLLL"+uri);
 		String responseString = getJsonFromUrl(uri);
 		AddressFromJsonResult(responseString);
 	}
@@ -293,24 +292,20 @@ System.out.println("hash map");
 			JSONObject jsonObj = new JSONObject	(responseString);		
 			String Status = jsonObj.getString("status");
 			if (Status.equalsIgnoreCase("OK")) {
-				System.out.println("address status okay");
 				JSONArray Results = jsonObj.getJSONArray("results");
 				JSONObject zero = Results.getJSONObject(0);
 				JSONArray address_components = zero.getJSONArray("address_components");
 
 				for (int i = 0; i < address_components.length(); i++) {
-					System.out.println("address components");
 					JSONObject addresses = address_components.getJSONObject(i);
 					String long_name = addresses.getString("long_name");
 					JSONArray mtypes = addresses.getJSONArray("types");
 					String Type = mtypes.getString(0);
-					
+
 
 					if (TextUtils.isEmpty(long_name) == false || !long_name.equals(null) || long_name.length() > 0 || long_name != "") {
 						if (Type.equalsIgnoreCase("street_number")) {
 							Address1 = long_name + " ";
-							System.out.println("addresssss1"+Address1);
-
 						} else if (Type.equalsIgnoreCase("route")) {
 							Address1 = Address1 + long_name;
 						} else if (Type.equalsIgnoreCase("sublocality")) {

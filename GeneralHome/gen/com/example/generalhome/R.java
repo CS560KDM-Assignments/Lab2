@@ -39,11 +39,11 @@ public final class R {
         public static final int weather=0x7f02000c;
     }
     public static final class id {
-        public static final int action_settings=0x7f090012;
+        public static final int action_settings=0x7f090011;
         public static final int add=0x7f090007;
         public static final int address=0x7f090008;
-        public static final int current_loc=0x7f090011;
         public static final int date=0x7f090001;
+        public static final int day=0x7f090010;
         public static final int latLng_text=0x7f09000f;
         public static final int latlng=0x7f09000e;
         public static final int page_images=0x7f090005;
@@ -53,7 +53,6 @@ public final class R {
         public static final int tableRow2a=0x7f090006;
         public static final int tableRow3=0x7f090009;
         public static final int tableRow4=0x7f09000d;
-        public static final int tableRow5=0x7f090010;
         public static final int textView1=0x7f090003;
         public static final int weather=0x7f09000a;
         public static final int weather_img=0x7f09000b;
