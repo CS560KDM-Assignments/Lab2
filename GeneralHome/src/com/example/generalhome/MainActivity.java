@@ -4,12 +4,16 @@ package com.example.generalhome;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -88,9 +92,7 @@ public class MainActivity extends Activity implements  LocationListener{
 		image = (ImageView)findViewById(R.id.page_images);
 		latLngButton = (Button)findViewById(R.id.latlng);
 		weatherButton = (Button) findViewById(R.id.weather);
-		System.out.println("weater button");
 		weatherText = (EditText)findViewById(R.id.weather_text);
-		System.out.println("latlng");
 		latLngText = (EditText) findViewById(R.id.latLng_text);
 		addressText = (EditText) findViewById(R.id.address);
 		date_text = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
@@ -104,8 +106,32 @@ public class MainActivity extends Activity implements  LocationListener{
 				R.drawable.top4,R.drawable.top8,R.drawable.top2,R.drawable.top6,R.drawable.top1};
 
 		//getting the location with location manager
-		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+		
+		// List all providers:
+			/*	List<String> providers = locationManager.getAllProviders();
+				for (String provider : providers) {
+					LocationProvider info = locationManager.getProvider(provider);
+					output.append(info.toString() + "\n\n");
+					//printProvider(provider);
+				}*/
+
+				Criteria criteria = new Criteria();
+				String bestProvider = locationManager.getBestProvider(criteria, false);
+				//output.append("\n\nBEST Provider:\n");
+				//printProvider(bestProvider);
+
+				//output.append("\n\nLocations (starting with last known):");
+				Location location = locationManager.getLastKnownLocation(bestProvider);
+				//printLocation(location);
+				if (location == null)
+					latLngText.setText("\nLocation[unknown]\n\n");
+				else
+					{latitude = location.getLatitude();
+				longitude = location.getLongitude();
+				latLngText.setText("Latitude:" + latitude + ", Longitude:" + longitude);}
+			
 
 		//Setting Date on right top corner
 		Calendar c = Calendar.getInstance();
@@ -156,9 +182,16 @@ public class MainActivity extends Activity implements  LocationListener{
 			public void onClick(View v){
 				getlatlng();
 				getAddress();
+				String uriEncode="";
+				//String cityParsed = str.replace(' ','%20');
+					
+					
 				String uri = "http://api.wunderground.com/api/36b799dc821d5836/conditions/q/" +State +"/"+City +".json";
+				uri = uri.replaceAll(" ", "%20");
+				System.out.println("encodedddd:"+ uri);
 				String respString = getJsonFromUrl(uri);
 				String weather ="";
+				System.out.println(respString);
 				HashMap<String, String> results = weatherFromJsonResult(respString);
 				for (HashMap.Entry<String,String> entry : results.entrySet()) {
 					if (entry.getKey()== "icon_url"){
@@ -242,8 +275,8 @@ public class MainActivity extends Activity implements  LocationListener{
 
 	//getting JSON from URL
 	String getJsonFromUrl(String url)
-	{
-		HttpClient httpclient = new DefaultHttpClient();
+	{System.out.println("url is"+url);
+			HttpClient httpclient = new DefaultHttpClient();
 		HttpResponse response;
 		String responseString = null;
 		try {
@@ -267,6 +300,7 @@ public class MainActivity extends Activity implements  LocationListener{
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.out.println("rsponse::"+responseString);
 		return responseString;
 	}
 
@@ -281,6 +315,7 @@ public class MainActivity extends Activity implements  LocationListener{
 	void getAddress()
 	{
 		String uri = "http://maps.googleapis.com/maps/api/geocode/json?latlng=" + lat + ","+ lng + "&sensor=true";
+		System.out.println(uri);
 		String responseString = getJsonFromUrl(uri);
 		AddressFromJsonResult(responseString);
 	}
@@ -313,12 +348,10 @@ public class MainActivity extends Activity implements  LocationListener{
 						} else if (Type.equalsIgnoreCase("locality")) {
 							// Address2 = Address2 + long_name + ", ";
 							City = long_name;
-							System.out.println("cityyyyy"+City);
 						} else if (Type.equalsIgnoreCase("administrative_area_level_2")) {
 							County = long_name;
 						} else if (Type.equalsIgnoreCase("administrative_area_level_1")) {
 							State = long_name;
-							System.out.println("state" +State);
 						} else if (Type.equalsIgnoreCase("country")) {
 							Country = long_name;
 						} else if (Type.equalsIgnoreCase("postal_code")) {
